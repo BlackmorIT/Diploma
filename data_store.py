@@ -11,8 +11,8 @@ metadata = MetaData()
 Base = declarative_base()
 
 
-class Viewed(Base):
-    __tablename__ = 'viewed'
+class selected(Base):
+    __tablename__ = 'selected'
     profile_id = sq.Column(sq.Integer, primary_key=True)
     worksheet_id = sq.Column(sq.Integer, primary_key=True)
 
@@ -22,7 +22,7 @@ class Viewed(Base):
 
 def add_user(engine, profile_id, worksheet_id):
     with Session(engine) as session:
-        to_bd = Viewed(profile_id=profile_id, worksheet_id=worksheet_id)
+        to_bd = selected(profile_id=profile_id, worksheet_id=worksheet_id)
         session.add(to_bd)
         session.commit()
 
@@ -31,9 +31,9 @@ def add_user(engine, profile_id, worksheet_id):
 
 def check_user(engine, profile_id, worksheet_id):
     with Session(engine) as session:
-        from_bd = session.query(Viewed).filter(
-            Viewed.profile_id == profile_id,
-            Viewed.worksheet_id == worksheet_id
+        from_bd = session.query(selected).filter(
+            selected.profile_id == profile_id,
+            selected.worksheet_id == worksheet_id
         ).first()
         return True if from_bd else False
 
