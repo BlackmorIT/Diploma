@@ -1,11 +1,9 @@
+import os
 from pprint import pprint
 from datetime import datetime
 # импорты
 import vk_api
 from vk_api.exceptions import ApiError
-
-from config import acces_token
-
 
 # получение данных о пользователе
 
@@ -87,7 +85,7 @@ class VkTools:
 
 if __name__ == '__main__':
     user_id = 789657038
-    tools = VkTools(acces_token)
+    tools = VkTools(os.environ.get("ACCESS_TOKEN"))
     params = tools.get_profile_info(user_id)
     worksheets = tools.search_worksheet(params, 20)
     worksheet = worksheets.pop()
