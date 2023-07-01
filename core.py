@@ -1,11 +1,8 @@
+from pprint import pprint
+from datetime import datetime
 import vk_api
 from vk_api.exceptions import ApiError
 from config import access_token
-from pprint import pprint
-from datetime import datetime
-
-# получение данных о пользователе
-
 
 class VkTools:
     def __init__(self, access_token):
@@ -21,12 +18,12 @@ class VkTools:
         try:
             info, = self.vkapi.method('users.get',
                                       {'user_id': user_id,
-                                       'fields': 'city,sex,relation,bdate'
+                                       'fields': 'city, sex, relation, bdate'
                                        }
                                       )
-        except ApiError as e:
+        except ApiError as error:
             info = {}
-            print(f'error = {e}')
+            print(f'error = {error}')
 
         result = {'name': (info['first_name'] + ' ' + info['last_name']) if
                   'first_name' in info and 'last_name' in info else None,
@@ -49,11 +46,11 @@ class VkTools:
                                           'age_to': params['year'] + 3,
                                       }
                                       )
-        except ApiError as e:
+        except ApiError as error:
             users = []
-            print(f'error = {e}')
+            print(f'error = {error}')
 
-        result = [{'name': item['first_name'] + item['last_name'],
+        result = [{'name': item['first_name'] + " " + item['last_name'],
                    'id': item['id']
                    } for item in users['items'] if item['is_closed'] is False
                   ]
@@ -61,33 +58,31 @@ class VkTools:
         return result
 
     def get_photos(self, id):
+        photos = self.vkapi.method('photos.get',
+                                 {'user_id': id,
+                                  'album_id': 'profile',
+                                  'extended': 1
+                                  }
+                                 )
         try:
-            photos = self.vkapi.method('photos.get',
-                                       {'owner_id': id,
-                                        'album_id': 'profile',
-                                        'extended': 1
-                                        }
-                                       )
-        except ApiError as e:
-            photos = {}
-            print(f'error = {e}')
+            photos = photos['items']
+        except KeyError:
+            return []
 
-        result = [{'owner_id': item['owner_id'],
-                   'id': item['id'],
-                   'likes': item['likes']['count'],
-                   'comments': item['comments']['count']
-                   } for item in photos['items']
-                  ]
-        '''сортировка п лайкам и комментам'''
-        return result[:3]
+        res = []
+
+        for photo in photos:
+            res.append({'owner_id': photo['owner_id'],
+                        'id': photo['id'],
+                        'likes': photo['likes']['count'],
+                        'comments': photo['comments']['count'],
+                        }
+                       )
+
+        res.sort(key=lambda x: x['likes'] + x['comments'] * 10, reverse=True)
+
+        return res
 
 
 if __name__ == '__main__':
-    user_id = 789657038
     tools = VkTools(access_token)
-    params = tools.get_profile_info(user_id)
-    worksheets = tools.search_worksheet(params, 20)
-    worksheet = worksheets.pop()
-    photos = tools.get_photos(worksheet['id'])
-
-    pprint(worksheets)
